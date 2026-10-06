@@ -1,0 +1,5 @@
+allowBuilds:
+  esbuild: true
+  vue-demi: true
+minimumReleaseAgeExclude:
+  - '@iconify-json/lucide@1.2.140'
