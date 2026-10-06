@@ -33,7 +33,7 @@ type ClientManager struct {
 }
 
 type client struct {
-	conn   *websocket.Conn
+	conn    *websocket.Conn
 	writeMu sync.Mutex
 }
 
@@ -182,7 +182,7 @@ func main() {
 //   - {"type":"ping"}        -> "pong", round-tripped for RTT
 //   - {"text":"..."} or
 //     {"type":"echo",...}    -> echoed to every client (this is
-//                               the Send button's path)
+//     the Send button's path)
 //   - non-JSON text          -> plain-text echo
 func handleClientFrame(me *client, p []byte, messageType int, clients *ClientManager) {
 	// Ignore control frames; only text frames carry protocol
