@@ -1,0 +1,16 @@
+# Binaries
+*.exe
+*.test
+*.out
+
+# Go coverage
+coverage.out
+
+# Local env
+.env
+
+# Logs
+*.log
+
+# Misc
+.DS_Store
