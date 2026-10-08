@@ -3,6 +3,7 @@ module auth
 go 1.26.0
 
 require (
+	github.com/gofiber/contrib/v3/jwt v1.2.4
 	github.com/gofiber/fiber/v3 v3.5.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
@@ -13,8 +14,6 @@ require (
 
 require (
 	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
-	github.com/andybalholm/brotli v1.2.2 // indirect
-	github.com/gofiber/contrib/v3/jwt v1.2.4 // indirect
 	github.com/gofiber/schema v1.8.7 // indirect
 	github.com/gofiber/utils/v2 v2.5.2 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect

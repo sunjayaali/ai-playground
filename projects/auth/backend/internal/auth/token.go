@@ -80,21 +80,30 @@ func (t *TokenService) sign(subject, typ string, ttl time.Duration, now time.Tim
 	return signed, expiry, err
 }
 
+// Key returns the HMAC secret used to sign tokens.
+func (t *TokenService) Key() []byte {
+	return t.secret
+}
+
+// KeyFunc returns a jwt.Keyfunc that validates the signing
+// method (HMAC) and that the token header's "typ" matches
+// kind.
+func (t *TokenService) KeyFunc(kind string) jwt.Keyfunc {
+	return func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method %v", token.Header["alg"])
+		}
+		if token.Header["typ"] != kind {
+			return nil, fmt.Errorf("unexpected token type %v", token.Header["typ"])
+		}
+		return t.secret, nil
+	}
+}
+
 // Parse validates raw and returns its claims. kind pins which token
 // type the caller accepts, so the wrong kind fails here.
 func (t *TokenService) Parse(raw, kind string) (*Claims, error) {
-	tok, err := jwt.ParseWithClaims(raw, &Claims{}, func(tok *jwt.Token) (any, error) {
-		// The alg header is attacker-controlled, so accepting
-		// anything but HMAC with our own secret would let an
-		// attacker forge tokens (e.g. with alg "none").
-		if _, ok := tok.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method %v", tok.Header["alg"])
-		}
-		if tok.Header["typ"] != kind {
-			return nil, fmt.Errorf("unexpected token type %v", tok.Header["typ"])
-		}
-		return t.secret, nil
-	})
+	tok, err := jwt.ParseWithClaims(raw, &Claims{}, t.KeyFunc(kind))
 	if err != nil {
 		return nil, err
 	}

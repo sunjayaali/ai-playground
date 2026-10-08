@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	jwtware "github.com/gofiber/contrib/v3/jwt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/extractors"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -84,6 +85,30 @@ func (s *server) routes(app *fiber.App) {
 	grp.Get("/me", s.requireAuth, s.me)
 }
 
+// requireAuth validates the access token with the Fiber JWT
+// middleware. The extractor chain is shared, so a Bearer header
+// wins and the access_token cookie backs it up — the same order
+// the old hand-rolled middleware used. The token's typ header is
+// pinned by the keyfunc, so a refresh token cannot authenticate
+// here. On success the claims land in c.Locals under claimsKey.
+func (s *server) requireAuth(c fiber.Ctx) error {
+	return jwtware.New(jwtware.Config{
+		Claims:     auth.Claims{},
+		Extractor:  accessTokenExtractor,
+		SigningKey: jwtware.SigningKey{JWTAlg: jwtware.HS256, Key: s.tokens.Key()},
+		KeyFunc:    s.tokens.KeyFunc(auth.TokenTypeAccess),
+		ErrorHandler: func(c fiber.Ctx, err error) error {
+			return s.error(c, fiber.StatusUnauthorized, "missing or invalid access token")
+		},
+		SuccessHandler: func(c fiber.Ctx) error {
+			if claims, ok := jwtware.FromContext(c).Claims.(*auth.Claims); ok {
+				c.Locals(claimsKey, claims)
+			}
+			return c.Next()
+		},
+	})(c)
+}
+
 type credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -110,7 +135,7 @@ func (s *server) register(c fiber.Ctx) error {
 		return s.error(c, fiber.StatusInternalServerError, "could not create user")
 	}
 
-	return s.tokenResponse(c, id)
+	return c.JSON(fiber.Map{"id": id, "username": creds.Username})
 }
 
 func (s *server) login(c fiber.Ctx) error {
@@ -161,19 +186,6 @@ func (s *server) me(c fiber.Ctx) error {
 		return s.error(c, fiber.StatusUnauthorized, "user no longer exists")
 	}
 	return c.JSON(fiber.Map{"id": claims.Subject, "username": u.Username()})
-}
-
-func (s *server) requireAuth(c fiber.Ctx) error {
-	raw, err := accessTokenExtractor.Extract(c)
-	if err != nil {
-		return s.error(c, fiber.StatusUnauthorized, "missing token")
-	}
-	claims, err := s.tokens.Parse(raw, auth.TokenTypeAccess)
-	if err != nil {
-		return s.error(c, fiber.StatusUnauthorized, "invalid or expired token")
-	}
-	c.Locals(claimsKey, claims)
-	return c.Next()
 }
 
 func (s *server) tokenResponse(c fiber.Ctx, subject string) error {
