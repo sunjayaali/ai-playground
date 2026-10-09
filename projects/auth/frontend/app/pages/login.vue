@@ -4,7 +4,7 @@ import { z } from "zod";
 
 definePageMeta({
   layout: "auth",
-  middleware: "auth",
+  middleware: "guest",
 });
 
 const { login } = useAuth();
@@ -21,7 +21,7 @@ async function handleSubmit(e: FormSubmitEvent<z.output<typeof schema>>) {
   try {
     await login(e.data.username, e.data.password);
     router.push("/");
-  } catch (error: any) {
+  } catch (error: unknown) {
     serverError.value =
       error instanceof ApiError ? error.message : "Could not sign in";
   }

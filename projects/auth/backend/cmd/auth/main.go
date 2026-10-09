@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3/extractors"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/joho/godotenv"
+	"golang.org/x/oauth2"
 
 	"auth/internal/auth"
 )
@@ -151,6 +152,8 @@ func (s *server) login(c fiber.Ctx) error {
 		// the 401 body must not leak which half failed.
 		return s.error(c, fiber.StatusUnauthorized, "invalid username or password")
 	}
+	// tokenResponse sets httpOnly cookies and returns token pair
+	// as oauth2.Token JSON, same shape as refresh.
 	return s.tokenResponse(c, u.ID())
 }
 
@@ -194,6 +197,11 @@ func (s *server) tokenResponse(c fiber.Ctx, subject string) error {
 		return s.error(c, fiber.StatusInternalServerError, "could not issue tokens")
 	}
 
+	s.setTokenCookies(c, tok)
+	return c.JSON(tok)
+}
+
+func (s *server) setTokenCookies(c fiber.Ctx, tok *oauth2.Token) {
 	c.Cookie(&fiber.Cookie{
 		Name:     accessCookieName,
 		Value:    tok.AccessToken,
@@ -212,8 +220,6 @@ func (s *server) tokenResponse(c fiber.Ctx, subject string) error {
 		HTTPOnly: true,
 		MaxAge:   400 * 24 * 3600,
 	})
-
-	return c.JSON(tok)
 }
 
 func (s *server) clearCookie(c fiber.Ctx, name string) {

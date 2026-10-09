@@ -2,7 +2,7 @@
 import type { NavigationMenuItem } from "@nuxt/ui";
 
 const router = useRouter();
-const { signOut, user } = useAuth();
+const { signOut, user, isAuthenticated } = useAuth();
 
 async function doSignOut() {
   await signOut();
@@ -11,20 +11,22 @@ async function doSignOut() {
 
 const menuItems = computed<NavigationMenuItem[]>(() => [
   { label: "Home", to: "/" },
+  { label: "Blank", to: "/blank" },
 ]);
 </script>
 
 <template>
   <UHeader>
-    <UNavigationMenu orientation="horizontal" :items="menuItems" />
+    <UNavigationMenu orientation="horizontal" :items="menuItems" color="neutral" />
 
     <template #body>
-      <UNavigationMenu :items="menuItems" orientation="vertical" />
+      <UNavigationMenu :items="menuItems" orientation="vertical" color="neutral" />
     </template>
 
     <template #right>
       <UColorModeButton />
       <UDropdownMenu
+        v-if="isAuthenticated"
         :content="{
           align: 'end',
         }"
