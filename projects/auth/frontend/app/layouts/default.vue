@@ -1,54 +1,66 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
 
+const authStore = useAuthStore();
 const router = useRouter();
-const { signOut, user, isAuthenticated } = useAuth();
 
-async function doSignOut() {
-  await signOut();
-  await router.push("/login");
-}
+const { user, isAuthenticated } = storeToRefs(authStore);
 
-const menuItems = computed<NavigationMenuItem[]>(() => [
+const menuItems: NavigationMenuItem[] = [
   { label: "Home", to: "/" },
   { label: "Blank", to: "/blank" },
-]);
+];
+
+async function signOut() {
+  await authStore.signOut();
+  await router.push("/login");
+}
 </script>
 
 <template>
-  <UHeader>
-    <UNavigationMenu orientation="horizontal" :items="menuItems" color="neutral" />
+  <div>
+    <UHeader>
+      <UNavigationMenu
+        orientation="horizontal"
+        :items="menuItems"
+        color="neutral"
+      />
 
-    <template #body>
-      <UNavigationMenu :items="menuItems" orientation="vertical" color="neutral" />
-    </template>
-
-    <template #right>
-      <UColorModeButton />
-      <UDropdownMenu
-        v-if="isAuthenticated"
-        :content="{
-          align: 'end',
-        }"
-        :items="[
-          {
-            label: 'Sign Out',
-            icon: 'i-lucide-log-out',
-            onSelect: doSignOut,
-          },
-        ]"
-      >
-        <UButton
-          variant="ghost"
+      <template #body>
+        <UNavigationMenu
+          :items="menuItems"
+          orientation="vertical"
           color="neutral"
-          icon="i-lucide-circle-user"
-          :label="user?.username"
         />
-      </UDropdownMenu>
-    </template>
-  </UHeader>
+      </template>
 
-  <UMain>
-    <slot />
-  </UMain>
+      <template #right>
+        <UColorModeButton />
+        <UDropdownMenu
+          v-if="isAuthenticated"
+          :content="{
+            align: 'end',
+          }"
+          :items="[
+            {
+              label: 'Sign Out',
+              icon: 'i-lucide-log-out',
+              onSelect: signOut,
+            },
+          ]"
+        >
+          <UButton
+            variant="ghost"
+            color="neutral"
+            icon="i-lucide-circle-user"
+            :label="user?.username"
+          />
+        </UDropdownMenu>
+      </template>
+    </UHeader>
+
+    <UMain>
+      <slot />
+    </UMain>
+  </div>
 </template>

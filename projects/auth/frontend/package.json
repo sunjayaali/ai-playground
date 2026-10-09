@@ -14,7 +14,9 @@
   "dependencies": {
     "@iconify-json/lucide": "^1.2.140",
     "@nuxt/ui": "^4.11.3",
+    "@pinia/nuxt": "^1.0.2",
     "nuxt": "^4.5.2",
+    "pinia": "^4.0.3",
     "vue": "^3.5.43",
     "vue-router": "^5.3.1",
     "zod": "^4.1.5"

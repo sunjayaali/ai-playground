@@ -1,35 +1,51 @@
 <script setup lang="ts">
 import * as z from "zod";
-import type { FormSubmitEvent } from "@nuxt/ui";
-
-const auth = useAuth();
-const toast = useToast();
-const router = useRouter();
+import type { AuthFormField, FormSubmitEvent } from "@nuxt/ui";
+import { ApiError } from "~/services/auth.api";
 
 definePageMeta({
   layout: "auth",
   middleware: "guest",
 });
 
+const authStore = useAuthStore();
+const router = useRouter();
+const toast = useToast();
+
+const serverError = ref<string | null>(null);
+
 const schema = z.object({
   username: z.string().min(3, "Must be at least 3 characters"),
   password: z.string().min(8, "Must be at least 8 characters"),
 });
 
-type Schema = z.output<typeof schema>;
+const fields: AuthFormField[] = [
+  {
+    type: "text",
+    name: "username",
+    label: "Username",
+    placeholder: "Enter your username",
+    required: true,
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "At least 8 characters",
+    required: true,
+  },
+];
 
-const serverError = ref<string | null>(null);
-
-async function onSubmit(event: FormSubmitEvent<Schema>) {
+async function handleSubmit(event: FormSubmitEvent<z.output<typeof schema>>) {
   serverError.value = null;
   try {
-    await auth.register(event.data.username, event.data.password);
+    await authStore.register(event.data.username, event.data.password);
     toast.add({
       title: "Account created",
       color: "success",
       icon: "i-lucide-check-circle",
     });
-    router.push("/");
+    await router.push("/");
   } catch (err) {
     // 409 comes back when the name is taken.
     serverError.value =
@@ -43,27 +59,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     <UPageCard class="w-full max-w-md">
       <UAuthForm
         :schema="schema"
-        :fields="[
-          {
-            type: 'text',
-            name: 'username',
-            label: 'Username',
-            placeholder: 'Enter your username',
-            required: true,
-          },
-          {
-            name: 'password',
-            label: 'Password',
-            type: 'password',
-            placeholder: 'At least 8 characters',
-            required: true,
-          },
-        ]"
+        :fields="fields"
         title="Create your account"
         description="Sign up to get a token pair and access the dashboard."
         icon="i-lucide-user-plus"
         :submit="{ label: 'Register', block: true }"
-        @submit="onSubmit"
+        @submit="handleSubmit"
       >
         <template #validation>
           <UAlert

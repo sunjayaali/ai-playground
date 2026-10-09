@@ -1,5 +1,7 @@
 export default defineNuxtRouteMiddleware(async (_to, _from) => {
-  const { user, fetchUser, isAuthenticated } = useAuth();
+  const authStore = useAuthStore();
+  const { user, isAuthenticated } = storeToRefs(authStore);
+  const { fetchUser } = authStore;
   if (!user.value) {
     try {
       await fetchUser();
