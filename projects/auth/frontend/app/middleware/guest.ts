@@ -1,10 +1,10 @@
-export default defineNuxtRouteMiddleware(async (to, from) => {
-  if (import.meta.server) {
-    return;
+export default defineNuxtRouteMiddleware(async (_to, _from) => {
+  const { user, fetchUser, isAuthenticated } = useAuth();
+  if (!user.value) {
+    try {
+      await fetchUser();
+    } catch {}
   }
-
-  const { fetchUser, isAuthenticated } = useAuth();
-  await fetchUser();
 
   if (isAuthenticated.value) {
     return navigateTo("/", { replace: true });
