@@ -3,41 +3,40 @@ definePageMeta({
   middleware: "auth",
 });
 
+const authStore = useAuthStore();
 const toast = useToast();
-const { user, refresh, fetchUser } = useAuth();
 
-const refreshedAt = ref<Date | null>(null);
+const { user } = storeToRefs(authStore);
+
 const identityLoadedAt = ref<Date | null>(null);
+const sessionRefreshedAt = ref<Date | null>(null);
 
+// Session-expired redirect lives in
+// app/plugins/auth-redirect.client.ts.
 async function refreshSession() {
-  if (await refresh()) {
-    refreshedAt.value = new Date();
-    toast.add({
-      title: "Session refreshed",
-      color: "success",
-      icon: "i-lucide-check-circle",
-    });
-  } else {
-    // refresh() cleared the identity state — the
-    // session is unrecoverable, so leave the app.
-    await navigateTo("/login", { replace: true });
+  const ok = await authStore.refreshSession();
+  if (!ok) {
+    return;
   }
+  sessionRefreshedAt.value = new Date();
+  toast.add({
+    title: "Session refreshed",
+    color: "success",
+    icon: "i-lucide-check-circle",
+  });
 }
 
 async function refreshIdentity() {
-  if (await fetchUser()) {
-    identityLoadedAt.value = new Date();
-    toast.add({
-      title: "Identity refreshed",
-      color: "success",
-      icon: "i-lucide-check-circle",
-    });
-  } else {
-    // fetchUser() already retried after a token
-    // refresh; still failing means the session is
-    // gone — kick to login.
-    await navigateTo("/login", { replace: true });
+  const info = await authStore.fetchUser();
+  if (!info) {
+    return;
   }
+  identityLoadedAt.value = new Date();
+  toast.add({
+    title: "Identity refreshed",
+    color: "success",
+    icon: "i-lucide-check-circle",
+  });
 }
 </script>
 
@@ -79,7 +78,11 @@ async function refreshIdentity() {
               <div class="flex items-center justify-between">
                 <span class="text-muted">Loaded</span>
                 <span class="font-mono">
-                  {{ identityLoadedAt ? identityLoadedAt.toLocaleTimeString() : "—" }}
+                  {{
+                    identityLoadedAt
+                      ? identityLoadedAt.toLocaleTimeString()
+                      : "—"
+                  }}
                 </span>
               </div>
             </div>
@@ -107,8 +110,8 @@ async function refreshIdentity() {
                 <span class="text-muted">Last refreshed</span>
                 <span class="font-mono">
                   {{
-                    refreshedAt
-                      ? refreshedAt.toLocaleTimeString()
+                    sessionRefreshedAt
+                      ? sessionRefreshedAt.toLocaleTimeString()
                       : "—"
                   }}
                 </span>

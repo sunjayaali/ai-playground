@@ -3,6 +3,7 @@
 // has no token types at all.
 export interface UserInfo {
   id: string;
+  username: string;
 }
 
 export interface AuthError {

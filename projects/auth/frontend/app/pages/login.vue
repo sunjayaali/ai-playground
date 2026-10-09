@@ -1,30 +1,54 @@
 <script setup lang="ts">
-import type { FormSubmitEvent } from "@nuxt/ui";
-import { z } from "zod";
+import * as z from "zod";
+import type { AuthFormField, FormSubmitEvent } from "@nuxt/ui";
+import { ApiError } from "~/services/auth.api";
 
 definePageMeta({
   layout: "auth",
   middleware: "guest",
 });
 
-const { login } = useAuth();
-const serverError = ref<string | null>(null);
+const authStore = useAuthStore();
 const router = useRouter();
+
+const serverError = ref<string | null>(null);
 
 const schema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
-async function handleSubmit(e: FormSubmitEvent<z.output<typeof schema>>) {
+const fields: AuthFormField[] = [
+  {
+    type: "text",
+    name: "username",
+    label: "Username",
+    placeholder: "Enter your username",
+    required: true,
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "Enter your password",
+    required: true,
+  },
+];
+
+async function submit(payload: { username: string; password: string }) {
   serverError.value = null;
   try {
-    await login(e.data.username, e.data.password);
-    router.push("/");
+    await authStore.login(payload.username, payload.password);
+    await router.push("/");
   } catch (error: unknown) {
+    console.log(error);
     serverError.value =
       error instanceof ApiError ? error.message : "Could not sign in";
   }
+}
+
+function handleSubmit(event: FormSubmitEvent<z.output<typeof schema>>) {
+  void submit(event.data);
 }
 </script>
 
@@ -36,24 +60,9 @@ async function handleSubmit(e: FormSubmitEvent<z.output<typeof schema>>) {
         title="Welcome Back!"
         description="Sign in to your account."
         :submit="{ label: 'Sign in', block: true }"
-        @submit="handleSubmit"
         :schema="schema"
-        :fields="[
-          {
-            type: 'text',
-            name: 'username',
-            label: 'Username',
-            placeholder: 'Enter your username',
-            required: true,
-          },
-          {
-            type: 'password',
-            name: 'password',
-            label: 'Password',
-            placeholder: 'Enter your password',
-            required: true,
-          },
-        ]"
+        :fields="fields"
+        @submit="handleSubmit"
       >
         <template #validation>
           <UAlert
