@@ -5,7 +5,9 @@ export default defineNuxtRouteMiddleware(async (to, _) => {
   if (!user.value) {
     try {
       await fetchUser();
-    } catch {}
+    } catch {
+      // Fetch failed — treated as unauthenticated below.
+    }
   }
 
   if (to.path === "/login") {

@@ -20,7 +20,7 @@ export const useAuthStore = defineStore("auth", () => {
     return ok;
   }
 
-  async function login(username: string, password: string) { 
+  async function login(username: string, password: string) {
     await api.login(username, password);
 
     // Cookies are set, but the current user only comes from /auth/me.

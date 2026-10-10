@@ -5,7 +5,9 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
   if (!user.value) {
     try {
       await fetchUser();
-    } catch {}
+    } catch {
+      // Not authenticated — guest pages stay accessible.
+    }
   }
 
   if (isAuthenticated.value) {

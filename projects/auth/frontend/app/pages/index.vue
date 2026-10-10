@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
+  layout: "dashboard",
   middleware: "auth",
+  title: "Home",
 });
 
 const authStore = useAuthStore();
@@ -41,85 +43,69 @@ async function refreshIdentity() {
 </script>
 
 <template>
-  <UContainer>
-    <UPage>
-      <UPageBody>
-        <UPageGrid
-          :ui="{
-            base: 'grid-cols-1 sm:grid-cols-2!',
-          }"
-        >
-          <UCard title="Title">
-            <template #header>
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 font-medium text-muted">
-                  <UIcon name="i-lucide-fingerprint" />
-                  Identity
-                </div>
-                <UButton
-                  icon="i-lucide-refresh-cw"
-                  variant="ghost"
-                  color="neutral"
-                  size="sm"
-                  @click="refreshIdentity"
-                />
-              </div>
-            </template>
+  <UPageGrid :ui="{ base: 'grid-cols-1 sm:grid-cols-2!' }">
+    <UCard title="Title">
+      <template #header>
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 font-medium text-muted">
+            <UIcon name="i-lucide-fingerprint" />
+            Identity
+          </div>
+          <UButton
+            icon="i-lucide-refresh-cw"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            @click="refreshIdentity"
+          />
+        </div>
+      </template>
 
-            <div class="flex flex-col gap-2 text-sm">
-              <div class="flex items-center justify-between">
-                <span class="text-muted">User ID</span>
-                <span class="font-mono">{{ user?.id ?? "—" }}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-muted">Username</span>
-                <span class="font-mono">{{ user?.username ?? "—" }}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-muted">Loaded</span>
-                <span class="font-mono">
-                  {{
-                    identityLoadedAt
-                      ? identityLoadedAt.toLocaleTimeString()
-                      : "—"
-                  }}
-                </span>
-              </div>
-            </div>
-          </UCard>
+      <div class="flex flex-col gap-2 text-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-muted">User ID</span>
+          <span class="font-mono">{{ user?.id ?? "—" }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-muted">Username</span>
+          <span class="font-mono">{{ user?.username ?? "—" }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-muted">Loaded</span>
+          <span class="font-mono">
+            {{ identityLoadedAt ? identityLoadedAt.toLocaleTimeString() : "—" }}
+          </span>
+        </div>
+      </div>
+    </UCard>
 
-          <UCard title="Title">
-            <template #header>
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 font-medium text-muted">
-                  <UIcon name="i-lucide-refresh-cw" />
-                  Session
-                </div>
-                <UButton
-                  icon="i-lucide-refresh-cw"
-                  variant="ghost"
-                  color="neutral"
-                  size="sm"
-                  @click="refreshSession"
-                />
-              </div>
-            </template>
+    <UCard title="Title">
+      <template #header>
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 font-medium text-muted">
+            <UIcon name="i-lucide-refresh-cw" />
+            Session
+          </div>
+          <UButton
+            icon="i-lucide-refresh-cw"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            @click="refreshSession"
+          />
+        </div>
+      </template>
 
-            <div class="flex flex-col gap-2 text-sm">
-              <div class="flex items-center justify-between">
-                <span class="text-muted">Last refreshed</span>
-                <span class="font-mono">
-                  {{
-                    sessionRefreshedAt
-                      ? sessionRefreshedAt.toLocaleTimeString()
-                      : "—"
-                  }}
-                </span>
-              </div>
-            </div>
-          </UCard>
-        </UPageGrid>
-      </UPageBody>
-    </UPage>
-  </UContainer>
+      <div class="flex flex-col gap-2 text-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-muted">Last refreshed</span>
+          <span class="font-mono">
+            {{
+              sessionRefreshedAt ? sessionRefreshedAt.toLocaleTimeString() : "—"
+            }}
+          </span>
+        </div>
+      </div>
+    </UCard>
+  </UPageGrid>
 </template>
